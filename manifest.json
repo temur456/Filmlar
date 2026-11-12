@@ -1,0 +1,8 @@
+{
+  "name": "sofa.ai",
+  "short_name": "sofa.ai",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#15133b",
+  "theme_color": "#15133b"
+}
