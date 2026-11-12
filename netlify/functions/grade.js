@@ -5,7 +5,10 @@
 // kind = "speaking"   : matnga aylangan javoblar -> 4 mezon bo'yicha ball + tahlil
 
 var GROQ = "https://api.groq.com/openai/v1";
-var CHAT_MODEL = "llama-3.3-70b-versatile";
+// Model nomlari Netlify'dagi GROQ_MODEL / GROQ_STT_MODEL orqali almashtiriladi (kodga tegmasdan).
+// Groq modellarni vaqti-vaqti bilan almashtirib turadi: https://console.groq.com/docs/deprecations
+var CHAT_MODEL = "openai/gpt-oss-120b";
+var FALLBACK_MODEL = "openai/gpt-oss-20b";
 var STT_MODEL = "whisper-large-v3-turbo";
 var LANG_NAME = { uz: "Uzbek (Latin script)", ru: "Russian", en: "English" };
 
@@ -64,29 +67,41 @@ function countWords(s) {
 function langOf(b) { return LANG_NAME[b.lang] ? b.lang : "en"; }
 
 async function chat(key, system, user) {
-  var r = await fetch(GROQ + "/chat/completions", {
-    method: "POST",
-    headers: { Authorization: "Bearer " + key, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: CHAT_MODEL,
+  var models = [process.env.GROQ_MODEL || CHAT_MODEL, FALLBACK_MODEL].filter(function (m, i, a) { return a.indexOf(m) === i; });
+  var last = null;
+  for (var i = 0; i < models.length; i++) {
+    var m = models[i];
+    var payload = {
+      model: m,
       temperature: 0.2,
+      max_completion_tokens: 2500,
       response_format: { type: "json_object" },
       messages: [{ role: "system", content: system }, { role: "user", content: user }]
-    })
-  });
-  if (!r.ok) {
-    var txt = await r.text();
-    var e = new Error("groq " + r.status + " " + txt.slice(0, 160));
-    e.status = r.status === 429 ? 429 : 502;
-    e.code = r.status === 429 ? "rate_limited" : "upstream";
-    throw e;
+    };
+    if (/^openai\/gpt-oss/.test(m)) payload.reasoning_effort = "low"; // tezroq javob
+    var r = await fetch(GROQ + "/chat/completions", {
+      method: "POST",
+      headers: { Authorization: "Bearer " + key, "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    if (!r.ok) {
+      var txt = await r.text();
+      var e = new Error("groq " + r.status + " [" + m + "] " + txt.slice(0, 140));
+      e.status = r.status === 429 ? 429 : 502;
+      e.code = r.status === 429 ? "rate_limited" : "upstream";
+      if (r.status === 404 && i < models.length - 1) { last = e; continue; } // model yo'q: zaxirasini sinaymiz
+      throw e;
+    }
+    var data = await r.json();
+    var content = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || "";
+    try {
+      return JSON.parse(content);
+    } catch (err) {
+      var found = String(content).match(/\{[\s\S]*\}/);
+      try { return JSON.parse(found ? found[0] : ""); } catch (err2) { throw fail(502, "upstream"); }
+    }
   }
-  var data = await r.json();
-  try {
-    return JSON.parse(data.choices[0].message.content);
-  } catch (err) {
-    throw fail(502, "upstream");
-  }
+  throw last || fail(502, "upstream");
 }
 
 // ---------- Writing ----------
@@ -155,7 +170,7 @@ async function transcribe(key, b) {
 
   var form = new FormData();
   form.append("file", new Blob([buf], { type: mime }), "speech." + ext);
-  form.append("model", STT_MODEL);
+  form.append("model", process.env.GROQ_STT_MODEL || STT_MODEL);
   form.append("language", "en");
   form.append("response_format", "verbose_json");
   form.append("temperature", "0");
