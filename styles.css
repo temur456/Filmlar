@@ -291,6 +291,8 @@ h3 { margin: 22px 0 10px; font-family: var(--display); font-weight: 600; font-si
 @keyframes grow { from { width: 0; } }
 .bv { font-family: var(--display); font-weight: 600; font-size: 14px; text-align: right; font-variant-numeric: tabular-nums; }
 
+.cert { display: block; width: 100%; height: auto; margin: 0 0 24px; border-radius: 14px; cursor: zoom-in; box-shadow: 0 14px 40px rgba(0, 0, 0, .55); }
+
 /* ---------- Xabar ---------- */
 .toast {
   position: fixed; left: 50%; bottom: calc(28px + env(safe-area-inset-bottom)); z-index: 20;
