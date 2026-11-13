@@ -118,7 +118,11 @@ const I18N = {
     tooShortClip: "Javob juda qisqa. Qayta yozing.",
     analyzing: "Tahlil qilinmoqda ({i}/{n})…",
     transcript: "Sizning nutqingiz (matn)",
-    speechNote: "Talaffuz bahosi nutqning qanchalik aniq tanilganiga asoslangan taxminiy baho."
+    speechNote: "Talaffuz bahosi nutqning qanchalik aniq tanilganiga asoslangan taxminiy baho.",
+    certTap: "Kattalashtirib ko'rish uchun rasmni bosing.",
+    certDownload: "Yuklab olish (PNG)",
+    certNote: "Bu Sofa.ai mashq testi sertifikati. U rasmiy IELTS yoki CEFR sertifikati emas.",
+    certWait: "Sertifikat tayyorlanmoqda, bir soniya kuting."
   },
   ru: {
     tagline: "Готовься к тестам и узнай свой уровень",
@@ -237,7 +241,11 @@ const I18N = {
     tooShortClip: "Ответ слишком короткий. Запишите заново.",
     analyzing: "Анализ ({i}/{n})…",
     transcript: "Ваша речь (текст)",
-    speechNote: "Оценка произношения приблизительная и основана на том, насколько чётко распознана ваша речь."
+    speechNote: "Оценка произношения приблизительная и основана на том, насколько чётко распознана ваша речь.",
+    certTap: "Нажмите на картинку, чтобы увеличить.",
+    certDownload: "Скачать (PNG)",
+    certNote: "Это сертификат практического теста Sofa.ai. Он не является официальным сертификатом IELTS или CEFR.",
+    certWait: "Сертификат готовится, подождите секунду."
   },
   en: {
     tagline: "Practice for tests and find your level",
@@ -356,6 +364,10 @@ const I18N = {
     tooShortClip: "The answer is too short. Record again.",
     analyzing: "Analyzing ({i}/{n})…",
     transcript: "Your speech (text)",
-    speechNote: "The pronunciation score is an estimate based on how clearly your speech was recognized."
+    speechNote: "The pronunciation score is an estimate based on how clearly your speech was recognized.",
+    certTap: "Tap the image to enlarge it.",
+    certDownload: "Download (PNG)",
+    certNote: "This is a Sofa.ai practice test certificate. It is not an official IELTS or CEFR certificate.",
+    certWait: "The certificate is being prepared, wait a second."
   }
 };
