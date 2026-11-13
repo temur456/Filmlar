@@ -439,9 +439,7 @@
       if (w.length) weakHtml += "<h3>" + t(k) + "</h3>" + w.map(function (x) { return '<div class="tip">' + esc(x) + "</div>"; }).join("");
     });
     h += "<h2>" + t("weaknesses") + "</h2>" + (weakHtml || '<div class="tip ok">' + t("allGood") + "</div>");
-    h += '<button class="cushion big c-orange soon" data-soon="1" style="margin-top:28px">' + badge() +
-      '<span class="ico">' + icon("cert") + '</span><span class="txt"><span class="name">' + t("certificate") +
-      '</span><span class="hint">' + t("certificateHint") + "</span></span></button>";
+    h += '<div style="margin-top:28px">' + bigCushion({ color: "c-orange", icon: "cert", name: t("certificate"), hint: t("certificateHint"), go: "certificate" }) + "</div>";
     return h + '<p class="note">' + t("estimateNote") + "</p>" +
       '<button class="cushion key c-violet" data-go="hub">' + t("backToTests") + "</button>";
   }
