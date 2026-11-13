@@ -27,11 +27,24 @@
     <main id="view" class="view"></main>
   </div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script>
+    // Xato bo'lsa, ekranda ko'rsatadi (fayl yuklanmagan yoki kod xatosi)
+    window.addEventListener("error", function (e) {
+      var v = document.getElementById("view");
+      if (!v) return;
+      var msg = e.target && e.target.src ? "Fayl yuklanmadi: " + e.target.src.split("/").pop() : "Xato: " + (e.message || "noma'lum");
+      var p = document.createElement("p");
+      p.style.cssText = "padding:16px;color:#ffb3c7;font:15px/1.5 sans-serif;word-break:break-word";
+      p.textContent = msg;
+      v.appendChild(p);
+    }, true);
+  </script>
   <script src="i18n.js"></script>
   <script src="reading-data.js"></script>
   <script src="tests-data.js"></script>
   <script src="config.js"></script>
   <script src="app.js"></script>
+  <script src="certificate.js"></script>
   <script src="ai.js"></script>
 </body>
 </html>
