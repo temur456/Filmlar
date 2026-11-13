@@ -37,9 +37,9 @@
   function load() {
     try {
       var s = JSON.parse(localStorage.getItem(STORE));
-      return { lang: (s && s.lang) || detectLang(), user: (s && s.user) || null, results: (s && s.results) || {} };
+      return { lang: (s && s.lang) || detectLang(), user: (s && s.user) || null, results: (s && s.results) || {}, seen: (s && s.seen) || {} };
     } catch (e) {
-      return { lang: detectLang(), user: null, results: {} };
+      return { lang: detectLang(), user: null, results: {}, seen: {} };
     }
   }
   function save() {
@@ -212,9 +212,19 @@
 
   // ====================== Reading / Listening ======================
   var QUIZ = {
-    reading: { data: READING, advice: { mcq: "adviceMcq", tfng: "adviceTfng", gap: "adviceGap" } },
-    listening: { data: LISTENING, advice: { mcq: "adviceLMcq", gap: "adviceLGap" } }
+    reading: { data: READING_SETS[0], advice: { mcq: "adviceMcq", tfng: "adviceTfng", gap: "adviceGap" } },
+    listening: { data: LISTENING_SETS[0], advice: { mcq: "adviceLMcq", gap: "adviceLGap" } }
   };
+  var SETS = { reading: READING_SETS, listening: LISTENING_SETS };
+  // Oxirgi tushgan to'plamni takrorlamasdan tasodifiy tanlaydi
+  function pickIndex(key, n) {
+    state.seen = state.seen || {};
+    var last = state.seen[key], i = Math.floor(Math.random() * (last === undefined || n < 2 ? n : n - 1));
+    if (last !== undefined && n > 1 && i >= last) i++;
+    state.seen[key] = i;
+    save();
+    return i;
+  }
   var INSTR = {
     reading: { mcq: "instrMcq", tfng: "instrTfng", gap: "instrGap" },
     listening: { mcq: "instrMcq", gap: "instrLGap" }
@@ -222,7 +232,7 @@
   var TYPE_NAME = { mcq: "Multiple choice", tfng: "True / False / Not given", gap: "Completion" };
 
   function empty(v) { return v === undefined || v === null || String(v).trim() === ""; }
-  function norm(s) { return String(s).toLowerCase().replace(/[\s$.,\-]/g, ""); }
+  function norm(s) { return String(s).toLowerCase().replace(/[\s$.,:\-]/g, ""); }
   function isCorrect(q, ans) {
     if (empty(ans)) return false;
     if (q.type === "gap") {
@@ -277,7 +287,7 @@
   }
 
   function playerHtml() {
-    var d = LISTENING, st = qz ? qz.audio : "idle";
+    var d = QUIZ.listening.data, st = qz ? qz.audio : "idle";
     var canPlay = !!d.audio || ("speechSynthesis" in window && "SpeechSynthesisUtterance" in window);
     if (!canPlay) {
       return '<p class="lead">' + t("noAudio") + "</p>" + '<div class="passage">' +
@@ -334,7 +344,7 @@
   }
 
   function quizResultHtml(kind) {
-    var r = state.results[kind], d = QUIZ[kind].data;
+    var r = state.results[kind], d = SETS[kind][r.set || 0] || QUIZ[kind].data;
     var h = resultCard(t("estBand"), r.band, ["CEFR " + cefrFromBand(r.band), t("correctOf").replace("{c}", r.correct).replace("{t}", r.total)]);
     var tp = quizTips(kind, r);
     h += "<h2>" + t("advice") + "</h2>";
@@ -361,7 +371,9 @@
   }
   actions.startQuiz = function (el) {
     var kind = el.getAttribute("data-kind");
-    qz = { kind: kind, answers: {}, audio: "idle" };
+    var idx = pickIndex(kind, SETS[kind].length);
+    QUIZ[kind].data = SETS[kind][idx];
+    qz = { kind: kind, answers: {}, audio: "idle", set: idx };
     startTimer(QUIZ[kind].data.minutes, function () {
       toast(t("timeUp"));
       finishQuiz(true);
@@ -382,15 +394,15 @@
       if (ok) { correct++; byType[q.type].c++; }
     });
     var total = d.questions.length, band = bandFromRaw(kind, correct, total);
-    saveResult(kind, { correct: correct, total: total, band: band, byType: byType, answers: qz.answers, at: Date.now() },
-      { correct: correct, total: total, byType: byType });
+    saveResult(kind, { correct: correct, total: total, band: band, byType: byType, answers: qz.answers, set: qz.set, at: Date.now() },
+      { correct: correct, total: total, byType: byType, set: d.id });
     navigate(kind + "Result");
   }
 
   // Listening: audio
   actions.playAudio = function () {
     if (!qz || qz.kind !== "listening" || qz.audio !== "idle") return;
-    var d = LISTENING;
+    var d = QUIZ.listening.data;
     qz.audio = "playing";
     refreshPlayer();
     var me = qz;
@@ -681,7 +693,7 @@
     define: define, actions: actions, state: state, save: save, t: t, esc: esc, icon: icon, toast: toast, bump: bump,
     navigate: navigate, render: render, fmtBand: fmtBand, cefr: cefrFromBand, saveResult: saveResult,
     resultCard: resultCard, bars: bars, tips: tips, countWords: countWords, timerChip: timerChip, fmtTime: fmtTime,
-    startTimer: startTimer, stopTimer: stopTimer, badge: badge,
+    startTimer: startTimer, stopTimer: stopTimer, badge: badge, pickIndex: pickIndex,
     start: function () { setLangUI(); render({ drop: true }); }
   };
 })();
