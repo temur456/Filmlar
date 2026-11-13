@@ -92,7 +92,7 @@
 
   S.actions.startWriting = function () {
     var p = WRITING.prompts;
-    wr = { prompt: p[Math.floor(Math.random() * p.length)], text: "", busy: false, err: "" };
+    wr = { prompt: p[S.pickIndex("writing", p.length)], text: "", busy: false, err: "" };
     S.startTimer(WRITING.minutes, function () { S.toast(t("timeUp")); submitEssay(true); });
     S.navigate("writingTest");
   };
@@ -128,7 +128,7 @@
   }
 
   // ====================== SPEAKING ======================
-  var SQ = SPEAKING.questions;
+  var SQ = SPEAKING_SETS[0].questions;
 
   S.define("speaking", {
     depth: 3, parent: "hub",
@@ -204,6 +204,7 @@
   }
 
   S.actions.startSpeaking = function () {
+    SQ = SPEAKING_SETS[S.pickIndex("speaking", SPEAKING_SETS.length)].questions;
     sp = { i: 0, phase: "idle", clips: [], answers: [], err: "", progress: 1 };
     S.navigate("speakingTest");
   };
